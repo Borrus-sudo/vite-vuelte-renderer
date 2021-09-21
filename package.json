@@ -1,0 +1,32 @@
+{
+    "name": "vite-dts",
+    "version": "1.0.0",
+    "description": "Use Svelte like template syntax in Vue components!",
+    "author": "JSGandalf",
+    "license": "MIT",
+    "main": "dist/index.js",
+    "files": [
+        "src",
+        "dist"
+    ],
+    "scripts": {},
+    "peerDependencies": {
+        "vite": ">2.0.0-0"
+    },
+    "devDependencies": {
+        "@types/jest": "^27.0.2",
+        "@types/node": "^14.14.20",
+        "jest": "^27.2.1",
+        "ts-jest": "^27.0.5",
+        "typescript": "^4.0.0",
+        "vite": "latest"
+    },
+    "keywords": [
+        "vite",
+        "vite-plugin",
+        "typescript",
+        "types",
+        "lib",
+        "dts"
+    ]
+}
