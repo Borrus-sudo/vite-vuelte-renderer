@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "util";
 import type { PluginOption } from "vite";
 
 export default function vuelte(): PluginOption {
@@ -6,18 +7,14 @@ export default function vuelte(): PluginOption {
     enforce: "pre",
     async transform(code: string, id: string) {
       if (!id.endsWith(".vue")) return;
-      // console.log(
-      //   code.replace(
-      //     /<template>(.*?)<\/template>/,
-      //     "<template><h1>JSGandalf</h1></template>"
-      //   )
-      // );
-      console.log(id);
-      code = code.replace(
-        /<template>(.*?)<\/template>/,
-        "<template><h1>JSGandalf</h1></template>"
-      );
-      return { code, map: null };
+  
+      return {
+        code: code.replace(
+          /<template>(.|\n)*?<\/template>/,
+          "<template><h1>JSGandalf</h1></template>"
+        ),
+        map: null,
+      };
     },
   };
 }
