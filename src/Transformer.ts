@@ -1,9 +1,11 @@
 import MagicString from "magic-string";
 export default class Transpiler {
   s;
-  constructor(private code: string, readonly parentElemName: string) {
-    this.code = code.trim();
-    this.s = new MagicString(this.code);
+  code: string;
+  constructor(private sfcCode: string, readonly parentElemName: string) {
+    this.code =
+      (sfcCode.trim().match(/<template>(.|\n)*?<\/template>/) || [])[0] || "";
+    this.s = new MagicString(this.sfcCode);
   }
   transform(): Object {
     const spec = {
@@ -46,7 +48,7 @@ export default class Transpiler {
         .slice(0, -1)
         .trim();
       const stringifyElement = `<${this.parentElemName} v-if="${coreContent}">`;
-      const startIndex = this.code.indexOf(IFBlock, lastIndex);
+      const startIndex = this.sfcCode.indexOf(IFBlock, lastIndex);
       const endIndex = startIndex + IFBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
@@ -57,21 +59,21 @@ export default class Transpiler {
         .slice(0, -1)
         .trim();
       const stringifyElement = `</${this.parentElemName}>\n<${this.parentElemName} v-else-if="${coreContent}">`;
-      const startIndex = this.code.indexOf(IFElseBlock, lastIndex);
+      const startIndex = this.sfcCode.indexOf(IFElseBlock, lastIndex);
       const endIndex = startIndex + IFElseBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
     for (let ElseBlock of ElseBlocks) {
       const stringifyElement = `</${this.parentElemName}>\n<${this.parentElemName} v-else>`;
-      const startIndex = this.code.indexOf(ElseBlock, lastIndex);
+      const startIndex = this.sfcCode.indexOf(ElseBlock, lastIndex);
       const endIndex = startIndex + ElseBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
     for (let EndIFBlock of EndIFBlocks) {
       const stringifyElement = `</${this.parentElemName}>`;
-      const startIndex = this.code.indexOf(EndIFBlock, lastIndex);
+      const startIndex = this.sfcCode.indexOf(EndIFBlock, lastIndex);
       const endIndex = startIndex + EndIFBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
@@ -87,7 +89,7 @@ export default class Transpiler {
         .slice(0, -1)
         .trim();
       const stringifyElement = `<${this.parentElemName} v-html="'${coreContent}'"></${this.parentElemName}>`;
-      const startIndex = this.code.indexOf(HTMLBlock, lastIndex);
+      const startIndex = this.sfcCode.indexOf(HTMLBlock, lastIndex);
       const endIndex = startIndex + HTMLBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
