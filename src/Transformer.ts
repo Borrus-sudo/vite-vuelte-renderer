@@ -1,9 +1,8 @@
 import MagicString from "magic-string";
-import { start } from "repl";
 export default class Transpiler {
   s;
   constructor(private code: string) {
-    this.code = this.code.trim();
+    this.code = code.trim();
     this.s = new MagicString(this.code);
   }
   transform(parentElementName: string): Object {
@@ -38,18 +37,27 @@ export default class Transpiler {
     transformedElemName: string
   ) {
     const IFBlocks = this.code.match(IFTransform) || [];
-    const IfElseBlocks = this.code.match(IFElseTransform);
+    const IFElseBlocks = this.code.match(IFElseTransform);
     const ElseBlocks = this.code.match(ElseTransform);
-    const EndIfBlocks = this.code.match(EndIfTransform);
+    const EndIFBlocks = this.code.match(EndIfTransform) || [];
+    let lastIndex: number = 0;
     for (let IFBlock of IFBlocks) {
       const coreContent = IFBlock.slice(IFBlock.indexOf(" "))
         .trim()
-        .slice(0, -1);
+        .slice(0, -1)
+        .trim();
       const stringifyElement = `<${transformedElemName} v-if="${coreContent}">`;
-      const startIndex = this.code.indexOf(IFBlock);
+      const startIndex = this.code.indexOf(IFBlock, lastIndex);
       const endIndex = startIndex + IFBlock.length;
+      lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
-      this.code.replace(IFBlock, stringifyElement);
+    }
+    for (let EndIFBlock of EndIFBlocks) {
+      const stringifyElement = `</${transformedElemName}>`;
+      const startIndex = this.code.indexOf(EndIFBlock, lastIndex);
+      const endIndex = startIndex + EndIFBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
   }
 }
