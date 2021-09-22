@@ -27,5 +27,8 @@
         "types",
         "lib",
         "dts"
-    ]
+    ],
+    "dependencies": {
+        "magic-string": "^0.25.7"
+    }
 }
