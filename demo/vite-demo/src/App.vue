@@ -1,16 +1,20 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from "./components/HelloWorld.vue";
-let name=$ref("Hello");
+let name: string = "Hello32";
 </script>
 
 <template>
   <div>
-    {#if name==='Hello'}
+    {#if name==='Hello32'}
     <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
-  </div>
+    {:else if name==='Hel3lo32'}
+    <div>First time doing vite plugins</div>
+    {:else}
+     {@html
+      <h1>Coders for life</h1>
+     } 
+    {/if}
   </div>
 </template>
 
