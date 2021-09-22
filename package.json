@@ -23,10 +23,8 @@
     "keywords": [
         "vite",
         "vite-plugin",
-        "typescript",
-        "types",
-        "lib",
-        "dts"
+        "vuejs",
+        "sveltejs"
     ],
     "dependencies": {
         "magic-string": "^0.25.7"
