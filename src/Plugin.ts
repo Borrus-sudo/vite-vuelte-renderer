@@ -1,20 +1,14 @@
-import { isDeepStrictEqual } from "util";
-import type { PluginOption } from "vite";
-
-export default function vuelte(): PluginOption {
+import type { Plugin } from "vite";
+import Transpiler from "./Transformer";
+export default function vuelte(parentElementName?: string): Plugin {
   return {
     name: "vite-vuelte-renderer",
     enforce: "pre",
     async transform(code: string, id: string) {
+      const templateRegex: RegExp = /<template>(.|\n)*?<\/template>/;
       if (!id.endsWith(".vue")) return;
-  
-      return {
-        code: code.replace(
-          /<template>(.|\n)*?<\/template>/,
-          "<template><h1>JSGandalf</h1></template>"
-        ),
-        map: null,
-      };
+      const template = code.match(templateRegex)?.[0] || "";
+      return new Transpiler(template).transform(parentElementName || "div");
     },
   };
 }
