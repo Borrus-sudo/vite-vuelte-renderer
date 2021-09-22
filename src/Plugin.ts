@@ -6,7 +6,7 @@ export default function vuelte(parentElementName?: string): Plugin {
     enforce: "pre",
     async transform(code: string, id: string) {
       if (!id.endsWith(".vue")) return;
-      return new Transpiler(code).transform(parentElementName || "div");
+      return new Transpiler(code, parentElementName || "div").transform();
     },
   };
 }

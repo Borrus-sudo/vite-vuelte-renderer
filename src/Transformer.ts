@@ -1,11 +1,11 @@
 import MagicString from "magic-string";
 export default class Transpiler {
   s;
-  constructor(private code: string) {
+  constructor(private code: string, readonly parentElemName: string) {
     this.code = code.trim();
     this.s = new MagicString(this.code);
   }
-  transform(parentElementName: string): Object {
+  transform(): Object {
     const spec = {
       IFTransform: /{#if\s+(.*?)}/g,
       IFElseTransform: /{:else if\s+(.*?)}/g,
@@ -24,17 +24,16 @@ export default class Transpiler {
       spec.IFTransform,
       spec.IFElseTransform,
       spec.ElseTransform,
-      spec.EndIfTransform,
-      parentElementName
+      spec.EndIfTransform
     );
+    this.transformHTML(spec.HTMLTransform);
     return { code: this.s.toString(), map: this.s.generateMap() };
   }
   transformIFExpression(
     IFTransform: RegExp,
     IFElseTransform: RegExp,
     ElseTransform: RegExp,
-    EndIfTransform: RegExp,
-    transformedElemName: string
+    EndIfTransform: RegExp
   ) {
     const IFBlocks = this.code.match(IFTransform) || [];
     const IFElseBlocks = this.code.match(IFElseTransform) || [];
@@ -46,7 +45,7 @@ export default class Transpiler {
         .trim()
         .slice(0, -1)
         .trim();
-      const stringifyElement = `<${transformedElemName} v-if="${coreContent}">`;
+      const stringifyElement = `<${this.parentElemName} v-if="${coreContent}">`;
       const startIndex = this.code.indexOf(IFBlock, lastIndex);
       const endIndex = startIndex + IFBlock.length;
       lastIndex = endIndex;
@@ -57,23 +56,39 @@ export default class Transpiler {
         .trim()
         .slice(0, -1)
         .trim();
-      const stringifyElement = `</${transformedElemName}>\n<${transformedElemName} v-else-if="${coreContent}">`;
+      const stringifyElement = `</${this.parentElemName}>\n<${this.parentElemName} v-else-if="${coreContent}">`;
       const startIndex = this.code.indexOf(IFElseBlock, lastIndex);
       const endIndex = startIndex + IFElseBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
     for (let ElseBlock of ElseBlocks) {
-      const stringifyElement = `</${transformedElemName}>\n<${transformedElemName} v-else>`;
+      const stringifyElement = `</${this.parentElemName}>\n<${this.parentElemName} v-else>`;
       const startIndex = this.code.indexOf(ElseBlock, lastIndex);
       const endIndex = startIndex + ElseBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
     for (let EndIFBlock of EndIFBlocks) {
-      const stringifyElement = `</${transformedElemName}>`;
+      const stringifyElement = `</${this.parentElemName}>`;
       const startIndex = this.code.indexOf(EndIFBlock, lastIndex);
       const endIndex = startIndex + EndIFBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
+    }
+  }
+  transformHTML(HTMLTransform: RegExp) {
+    const HTMLBlocks = this.code.match(HTMLTransform) || [];
+    let lastIndex: number = 0;
+    for (let HTMLBlock of HTMLBlocks) {
+      const coreContent = HTMLBlock.slice(HTMLBlock.indexOf("l"))
+        .slice(1)
+        .trim()
+        .slice(0, -1)
+        .trim();
+      const stringifyElement = `<${this.parentElemName} v-html="'${coreContent}'"></${this.parentElemName}>`;
+      const startIndex = this.code.indexOf(HTMLBlock, lastIndex);
+      const endIndex = startIndex + HTMLBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
