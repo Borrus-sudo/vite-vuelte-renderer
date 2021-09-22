@@ -7,18 +7,18 @@ export default class Transpiler {
   }
   transform(parentElementName: string): Object {
     const spec = {
-      IFTransform: /{#if(.*?)}/g,
-      IFElseTransform: /{:else if(.*?)}/g,
-      ElseTransform: /{:else(.*?)}/g,
+      IFTransform: /{#if\s+(.*?)}/g,
+      IFElseTransform: /{:else if\s+(.*?)}/g,
+      ElseTransform: /{:else}/g,
       EndIfTransform: /{\/if}/g,
-      ForTransform: /{#each(.*?)}/g,
+      ForTransform: /{#each\s+(.*?)}/g,
       EndForTransform: /{\/each}/g,
-      AwaitTransform: /{#await(.*?)}/g,
-      AwaitThenTransform: /{:then(.*?)}/g,
-      AwaitCatchTransform: /{:catch(.*?)}/g,
+      AwaitTransform: /{#await\s+(.*?)}/g,
+      AwaitThenTransform: /{:then\s+(.*?)}/g,
+      AwaitCatchTransform: /{:catch\s+(.*?)}/g,
       EndAwaitTransform: /{\/await}/g,
-      HTMLTransform: /{@html(.|\n)*?}/g,
-      DebugTransform: /{@debug(.|\n)*?}/g,
+      HTMLTransform: /{@html\s+(.|\n)*?}/g,
+      DebugTransform: /{@debug\s+(.|\n)*?}/g,
     };
     this.transformIFExpression(
       spec.IFTransform,
@@ -37,8 +37,8 @@ export default class Transpiler {
     transformedElemName: string
   ) {
     const IFBlocks = this.code.match(IFTransform) || [];
-    const IFElseBlocks = this.code.match(IFElseTransform);
-    const ElseBlocks = this.code.match(ElseTransform);
+    const IFElseBlocks = this.code.match(IFElseTransform) || [];
+    const ElseBlocks = this.code.match(ElseTransform) || [];
     const EndIFBlocks = this.code.match(EndIfTransform) || [];
     let lastIndex: number = 0;
     for (let IFBlock of IFBlocks) {
@@ -49,6 +49,24 @@ export default class Transpiler {
       const stringifyElement = `<${transformedElemName} v-if="${coreContent}">`;
       const startIndex = this.code.indexOf(IFBlock, lastIndex);
       const endIndex = startIndex + IFBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
+    }
+    for (let IFElseBlock of IFElseBlocks) {
+      const coreContent = IFElseBlock.slice(IFElseBlock.indexOf(" ", 7))
+        .trim()
+        .slice(0, -1)
+        .trim();
+      const stringifyElement = `</${transformedElemName}>\n<${transformedElemName} v-else-if="${coreContent}">`;
+      const startIndex = this.code.indexOf(IFElseBlock, lastIndex);
+      const endIndex = startIndex + IFElseBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
+    }
+    for (let ElseBlock of ElseBlocks) {
+      const stringifyElement = `</${transformedElemName}>\n<${transformedElemName} v-else>`;
+      const startIndex = this.code.indexOf(ElseBlock, lastIndex);
+      const endIndex = startIndex + ElseBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
