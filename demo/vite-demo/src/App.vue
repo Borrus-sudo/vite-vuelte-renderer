@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-let name: string = "Hello32";
+let name: string = "H8ello32";
+let elem = [{ name: "John DOes" }, { name: "Alice" }, { name: "Bob" }];
 </script>
 
 <template>
@@ -10,10 +11,12 @@ let name: string = "Hello32";
     <img alt="Vue logo" src="./assets/logo.png" />
     {:else if name==='Hel3lo32'}
     <div>First time doing vite plugins</div>
-    {:else}
-     {@html
-      <h1>Coders for life</h1>
-     } 
+    {:else} {@html
+    <h1>Coders for life</h1>
+    } 
+    {#each elem as {name},index (index)}
+    {{ name }}-->{{ index }}
+    {/each} 
     {/if}
   </div>
 </template>
