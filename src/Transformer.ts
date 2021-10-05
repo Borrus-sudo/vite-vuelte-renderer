@@ -22,6 +22,8 @@ export default class Transpiler {
       HTMLTransform: /{@html\s+(.|\n)*?}/g,
       DebugTransform: /{@debug\s+(.|\n)*?}/g,
     };
+    // \((?>[^()]|(?R))*\)
+    let testRegex=/#each\s+\{([^()]|(?R))*\}/;
     this.transformIFExpression(
       spec.IFTransform,
       spec.IFElseTransform,
@@ -29,6 +31,7 @@ export default class Transpiler {
       spec.EndIfTransform
     );
     this.transformHTML(spec.HTMLTransform);
+    this.transformForExpression(spec.ForTransform, spec.EndForTransform);
     return { code: this.s.toString(), map: this.s.generateMap() };
   }
   transformIFExpression(
@@ -53,6 +56,7 @@ export default class Transpiler {
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
+    lastIndex = 0;
     for (let IFElseBlock of IFElseBlocks) {
       const coreContent = IFElseBlock.slice(IFElseBlock.indexOf(" ", 7))
         .trim()
@@ -64,6 +68,7 @@ export default class Transpiler {
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
+    lastIndex = 0;
     for (let ElseBlock of ElseBlocks) {
       const stringifyElement = `</${this.parentElemName}>\n<${this.parentElemName} v-else>`;
       const startIndex = this.sfcCode.indexOf(ElseBlock, lastIndex);
@@ -71,10 +76,48 @@ export default class Transpiler {
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
+    lastIndex = 0;
     for (let EndIFBlock of EndIFBlocks) {
       const stringifyElement = `</${this.parentElemName}>`;
       const startIndex = this.sfcCode.indexOf(EndIFBlock, lastIndex);
       const endIndex = startIndex + EndIFBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
+    }
+  }
+  transformForExpression(ForTransform: RegExp, EndForTransform: RegExp) {
+    const ForBlocks = this.code.match(ForTransform) || [];
+    const EndForBlocks = this.code.match(EndForTransform) || [];
+    let lastIndex: number = 0;
+    for (let ForBlock of ForBlocks) {
+      const coreContent = ForBlock.slice(ForBlock.indexOf(" "))
+        .trim()
+        .slice(0, -1)
+        .trim();
+      if (!coreContent.includes(" as ")) {
+        continue;
+      }
+      const [expression, rest] = coreContent
+        .split(" as ")
+        .map((elem: string) => elem.trim());
+      const keyID =
+        rest.lastIndexOf(")") + 1 == rest.length && rest.includes("(")
+          ? rest.slice(rest.lastIndexOf("("), rest.lastIndexOf(")") + 1)
+          : "";
+      const frontExpression = `(${keyID ? rest.split(keyID)[0].trim() : rest})`;
+      const stringifyElement = `<template v-for="${frontExpression} in ${expression}" :key="${
+        keyID ? keyID : 1
+      }">`;
+      const startIndex = this.sfcCode.indexOf(ForBlock, lastIndex);
+      const endIndex = startIndex + ForBlock.length;
+      lastIndex = endIndex;
+      this.s.overwrite(startIndex, endIndex, stringifyElement);
+    }
+    lastIndex = 0;
+    for (let EndForBlock of EndForBlocks) {
+      const stringifyElement = `</template>`;
+      const startIndex = this.sfcCode.indexOf(EndForBlock, lastIndex);
+      const endIndex = startIndex + EndForBlock.length;
       lastIndex = endIndex;
       this.s.overwrite(startIndex, endIndex, stringifyElement);
     }
