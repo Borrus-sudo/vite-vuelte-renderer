@@ -4,7 +4,7 @@
     "description": "Use Svelte like template syntax in Vue components!",
     "author": "JSGandalf",
     "license": "MIT",
-    "main": "dist/index.js",
+    "main": "dist/Plugin.js",
     "files": [
         "dist"
     ],
